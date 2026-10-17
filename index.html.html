@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My TV Channel Guide</title>
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --gutter: 1.25rem;
+  --chan-col: 13rem;
+  --bg: #ffffff;
+  --text: #111111;
+  --muted: #5c5c5c;
+  --rule: #c8c8c8;
+  --channel-bg: #eeeeee;
+  --cell-bg: #ffffff;
+  --cell-hover: #eaf3ff;
+  --sub: #1f6fb8;
+  --today: #1a7f37;
+  --accent: #0a4fa0;
+  --focus: #d62828;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000;
+    --text: #ffffff;
+    --muted: #9a9a9a;
+    --rule: #333333;
+    --channel-bg: #161616;
+    --cell-bg: #050505;
+    --cell-hover: #1a1a1a;
+    --sub: #4aa3e8;
+    --today: #3ddc5c;
+    --accent: #ffd23f;
+    --focus: #ff8c42;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --text: #ffffff;
+  --muted: #9a9a9a;
+  --rule: #333333;
+  --channel-bg: #161616;
+  --cell-bg: #050505;
+  --cell-hover: #1a1a1a;
+  --sub: #4aa3e8;
+  --today: #3ddc5c;
+  --accent: #ffd23f;
+  --focus: #ff8c42;
+}
+
+html {
+  font-size: calc(16px * var(--scale, 1));
+  -webkit-text-size-adjust: 100%;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  line-height: 1.3;
+  min-height: 100vh;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  padding: 1rem var(--gutter);
+  border-bottom: 1px solid var(--rule);
+}
+.top h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.size {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.size button {
+  font: inherit;
+  font-weight: 700;
+  min-width: 3rem;
+  min-height: 2.8rem;
+  padding: 0 0.75rem;
+  border: 2px solid var(--rule);
+  background: var(--channel-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.size button:disabled { opacity: 0.35; cursor: default; }
+
+.scroll { overflow-x: auto; }
+.grid { min-width: 56rem; }
+
+.times,
+.row {
+  display: grid;
+  grid-template-columns: var(--chan-col) repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid var(--rule);
+}
+.times .today {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--today);
+  border-right: 1px solid var(--rule);
+}
+.times .slot {
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  color: var(--muted);
+  border-left: 1px solid var(--rule);
+}
+
+.channel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  min-height: 5.5rem;
+  padding: 0.6rem 0.8rem;
+  text-align: right;
+  background: var(--channel-bg);
+  border-right: 1px solid var(--rule);
+}
+.channel .num {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.channel .name {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 0;
+  min-height: 5.5rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border: 0;
+  border-right: 1px solid var(--rule);
+  background: var(--cell-bg);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cell:hover { background: var(--cell-hover); }
+.cell .title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.cell .sub {
+  font-size: 0.95rem;
+  color: var(--sub);
+}
+.cell[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--accent); }
+.cell:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
+.foot {
+  padding: 1rem var(--gutter) 2rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+@media (max-width: 700px) {
+  :root { --gutter: 0.9rem; --chan-col: 9rem; }
+  .top h1 { font-size: 1.6rem; }
+  .grid { min-width: 46rem; }
+  .channel .name { font-size: 1rem; }
+  .cell .title { font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>My TV Channel Guide</h1>
+  <div class="size" role="group" aria-label="Text size">
+    <span>Text size</span>
+    <button type="button" id="smaller" aria-label="Make text smaller">A−</button>
+    <button type="button" id="larger" aria-label="Make text larger">A+</button>
+  </div>
+</header>
+
+<div class="scroll">
+  <main class="grid" id="grid"></main>
+</div>
+
+<footer class="foot" id="foot"></footer>
+
+<script>
+const CATEGORIES = [
+  {
+    name: "Movies",
+    cellSub: null,
+    titles: [
+      "Creep (1–2)", "Marvel Series", "Next", "Sky High", "Mars Needs Moms",
+      "Accident Man", "Full Metal Jacket", "The Endless", "In Their Skin",
+      "The Invitation", "An Eye for an Eye", "Memento", "All Transformers",
+      "X-Men", "7 Pounds", "Twinless", "A Different Man"
+    ]
+  },
+  {
+    name: "TV Shows",
+    cellSub: "Real people",
+    titles: [
+      "House", "The Good Doctor", "Black Mirror", "The Sopranos", "Euphoria",
+      "Breaking Bad", "Better Call Saul", "Arrested Development", "Gotham", "Painkillers"
+    ]
+  },
+  {
+    name: "TV Shows",
+    cellSub: "Animated",
+    titles: [
+      "Solar Opposites", "Invincible", "Assassination Classroom", "F Is for Family",
+      "JoJo's Bizarre Adventure", "Flapjack", "Archer", "Final Space", "Disenchanted"
+    ]
+  }
+];
+
+const SLOTS = ["6:00 p", "7:00 p", "8:00 p", "9:00 p"];
+const SIZES = [1, 1.15, 1.3, 1.5, 1.7];
+let sizeIndex = 0;
+
+const grid = document.getElementById("grid");
+const smaller = document.getElementById("smaller");
+const larger = document.getElementById("larger");
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  node.className = className;
+  node.textContent = text;
+  return node;
+}
+
+function toggleCell(button) {
+  const pressed = button.getAttribute("aria-pressed") === "true";
+  button.setAttribute("aria-pressed", pressed ? "false" : "true");
+}
+
+// Header row: today's date and time slots
+const times = el("div", "times");
+const today = el("div", "today", "TODAY: ");
+today.append(document.createTextNode(
+  new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+));
+times.append(today);
+SLOTS.forEach(slot => times.append(el("div", "slot", slot)));
+grid.append(times);
+
+// Channel rows: four titles per row, one per time slot
+let channelNumber = 0;
+let titleCount = 0;
+
+CATEGORIES.forEach(category => {
+  for (let i = 0; i < category.titles.length; i += 4) {
+    const group = category.titles.slice(i, i + 4);
+    channelNumber++;
+    titleCount += group.length;
+
+    const row = el("div", "row");
+    const channel = el("div", "channel");
+    channel.append(
+      el("span", "num", String(channelNumber).padStart(4, "0")),
+      el("span", "name", category.name)
+    );
+    row.append(channel);
+
+    const span = Math.max(1, Math.floor(4 / group.length));
+    group.forEach(title => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "cell";
+      button.style.gridColumn = "span " + span;
+      button.setAttribute("aria-pressed", "false");
+      button.append(el("span", "title", title));
+      if (category.cellSub) button.append(el("span", "sub", category.cellSub));
+      button.addEventListener("click", () => toggleCell(button));
+      row.append(button);
+    });
+
+    grid.append(row);
+  }
+});
+
+document.getElementById("foot").textContent =
+  titleCount + " titles on " + channelNumber + " channels.";
+
+function applySize() {
+  document.documentElement.style.setProperty("--scale", SIZES[sizeIndex]);
+  smaller.disabled = sizeIndex === 0;
+  larger.disabled = sizeIndex === SIZES.length - 1;
+}
+
+smaller.addEventListener("click", () => {
+  if (sizeIndex > 0) sizeIndex--;
+  applySize();
+});
+larger.addEventListener("click", () => {
+  if (sizeIndex < SIZES.length - 1) sizeIndex++;
+  applySize();
+});
+applySize();
+</script>
+</body>
+</html>
